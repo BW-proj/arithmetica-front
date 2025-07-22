@@ -103,29 +103,80 @@ export const GameWithSocket: React.FC<{}> = ({}) => {
           {!gameScore && (
             <>
               {!currentGame && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSearchGame}
-                  fullWidth
-                  size="large"
-                >
-                  🔍 Rechercher une partie
-                </Button>
-              )}
-              {messageWait && (
                 <Box
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  gap={1}
-                  mt={2}
+                  sx={{
+                    bgcolor: "white",
+                    borderRadius: 4,
+                    p: 4,
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                    textAlign: "center",
+                    position: "relative",
+                    overflow: "hidden",
+                  }}
                 >
-                  <CircularProgress size={20} color="primary" />
-                  <Typography>
-                    Veuillez patienter, la recherche d'une partie est en
-                    cours...
+                  {/* Dégradé en coin */}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: -40,
+                      right: -40,
+                      width: 120,
+                      height: 120,
+                      bgcolor: "primary.main",
+                      opacity: 0.2,
+                      transform: "rotate(45deg)",
+                    }}
+                  />
+                  <Typography variant="h4" fontWeight="bold" sx={{ mb: 2 }}>
+                    Prêt à jouer ?
                   </Typography>
+                  <Typography
+                    variant="subtitle1"
+                    color="text.secondary"
+                    sx={{ mb: 4 }}
+                  >
+                    Clique sur le bouton pour trouver un adversaire
+                  </Typography>
+
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSearchGame}
+                    fullWidth
+                    size="large"
+                    sx={{
+                      py: 1.8,
+                      fontSize: "1rem",
+                      textTransform: "uppercase",
+                      background: "linear-gradient(135deg, #4f46e5, #ec4899)",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                    }}
+                  >
+                    🔍 Rechercher une partie
+                  </Button>
+
+                  {messageWait && (
+                    <Box
+                      display="flex"
+                      flexDirection="column"
+                      alignItems="center"
+                      mt={4}
+                      sx={{
+                        animation: "pulse 1.5s ease-in-out infinite",
+                      }}
+                    >
+                      <CircularProgress size={32} thickness={4} />
+                      <Typography
+                        sx={{
+                          mt: 2,
+                          fontStyle: "italic",
+                          color: "text.secondary",
+                        }}
+                      >
+                        Recherche en cours…
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
               )}
             </>
