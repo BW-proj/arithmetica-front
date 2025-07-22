@@ -59,33 +59,57 @@ const GameBoard: React.FC<Props> = ({
     console.log("Submitting answer:", answer);
     socket.emit("PlayerAnswer", { uuid: player.uuid, answer: Number(answer) });
   };
+  useEffect(() => {
+    if (messageEror) {
+      setAnswer("");
+    }
+  }, [messageEror]);
+
   return (
     <Box
       maxWidth={480}
       bgcolor="background.paper"
       p={4}
-      borderRadius={3}
-      boxShadow={3}
-      sx={{ mx: "auto" }}
+      borderRadius={4}
+      boxShadow={4}
+      sx={{
+        mx: "auto",
+        textAlign: "center",
+      }}
     >
-      <Typography variant="subtitle1" gutterBottom>
-        {currentGame.playersLogins[0]} elo:
-        {currentGame.playersElo[0]}
-        {" vs "}
-        {currentGame.playersLogins[1]} elo:
-        {currentGame.playersElo[1]}
-        {" | Score: "}
-        {gameScore ? gameScore[0].score : 0} -{" "}
-        {gameScore ? gameScore[1].score : 0}
+      <Typography
+        variant="subtitle1"
+        sx={{
+          mb: 2,
+          fontWeight: "bold",
+          color: "primary.main",
+          textTransform: "uppercase",
+        }}
+      >
+        {currentGame.playersLogins[0]} (🏅{currentGame.playersElo[0]}){"  VS  "}
+        {currentGame.playersLogins[1]} (🏅{currentGame.playersElo[1]})
+        <br />
+        🎯 Score : {gameScore?.[0].score ?? 0} – {gameScore?.[1].score ?? 0}
       </Typography>
-      <Typography variant="h5" fontWeight="bold" gutterBottom>
+
+      <Typography
+        variant="h4"
+        fontWeight="bold"
+        sx={{
+          mb: 3,
+          color: "#4f46e5",
+          textShadow: "1px 1px 3px rgba(0,0,0,0.2)",
+        }}
+      >
         {problem.title}
       </Typography>
+
       {messageEror && (
-        <Typography color="error" mb={2}>
-          Réponse incorrecte, essayez à nouveau !
+        <Typography color="error" sx={{ mb: 2, fontWeight: "medium" }}>
+          ❌ Réponse incorrecte, essayez encore !
         </Typography>
       )}
+
       <TextField
         type="number"
         fullWidth
@@ -93,18 +117,31 @@ const GameBoard: React.FC<Props> = ({
         onChange={(e) => setAnswer(e.target.value)}
         placeholder="Votre réponse"
         variant="outlined"
-        sx={{ mb: 2 }}
+        sx={{
+          mb: 2,
+          backgroundColor: "#f9fafb",
+          borderRadius: 1,
+          input: { textAlign: "center", fontWeight: "bold" },
+        }}
       />
 
       <Button
         variant="contained"
-        color="primary"
         fullWidth
+        size="large"
         onClick={submitAnswer}
         disabled={timeLeft === 0}
-        sx={{ mb: 2 }}
+        sx={{
+          mb: 2,
+          py: 1.5,
+          fontWeight: "bold",
+          background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+          "&:hover": {
+            background: "linear-gradient(135deg, #4f46e5, #7c3aed)",
+          },
+        }}
       >
-        Valider
+        ✅ Valider
       </Button>
 
       <Timer timeLeft={timeLeft} />
@@ -120,10 +157,11 @@ const Timer: React.FC<TimerProps> = ({ timeLeft }) => (
   <Typography
     variant="body2"
     fontFamily="monospace"
-    color="text.secondary"
+    color={timeLeft <= 5 ? "error.main" : "text.secondary"}
     textAlign="right"
+    sx={{ fontWeight: "medium" }}
   >
-    Temps restant : {timeLeft}s
+    ⏳ Temps restant : {timeLeft}s
   </Typography>
 );
 

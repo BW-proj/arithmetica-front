@@ -1,7 +1,4 @@
 import React, { useState, useContext } from "react";
-import PseudoForm from "./components/PseudoForm";
-import GameBoard from "./components/GameBoard";
-import { SocketProvider, GameContext } from "./contexts/GameContext";
 import {
   Box,
   Button,
@@ -11,267 +8,399 @@ import {
   CircularProgress,
   IconButton,
   Dialog,
-  DialogContent,
   DialogTitle,
+  DialogContent,
   List,
   ListItem,
   ListItemText,
 } from "@mui/material";
 import LeaderboardIcon from "@mui/icons-material/Leaderboard";
-import GameRouter from "./GameRouter";
+import { motion, AnimatePresence } from "framer-motion";
+import { SocketProvider, GameContext } from "./contexts/GameContext";
+import PseudoForm from "./components/PseudoForm";
+import GameBoard from "./components/GameBoard";
 import PreGameCountdown from "./components/PreGameCountDown";
 
 const App: React.FC = () => {
   const [pseudo, setPseudo] = useState<string | null>(null);
-  const { player } = useContext(GameContext);
-
-  const onSubmit = (pseudo: string) => {
-    console.log("Pseudo submitted:", pseudo);
-    setPseudo(pseudo);
-  };
-  console.log("player in App:", player);
-
   return (
     <SocketProvider pseudo={pseudo}>
-      {!pseudo ? <PseudoForm onSubmit={onSubmit} /> : <GameRouter />}
+      {!pseudo ? <PseudoForm onSubmit={setPseudo} /> : <GameWithSocket />}
     </SocketProvider>
   );
 };
 
-export const GameWithSocket: React.FC<{}> = ({}) => {
+export const GameWithSocket: React.FC = () => {
   const {
     player,
     currentGame,
     currentProblem,
     gameScore,
     timer,
-    setTimer,
-    socket,
-    messageEror,
-    setShowCountdown,
     showCountdown,
-    setMessageWait,
     messageWait,
     leaderBoard,
+    socket,
+    setMessageWait,
+    setShowCountdown,
+    setTimer,
+    messageEror,
   } = useContext(GameContext);
+
   const [openLeaderboard, setOpenLeaderboard] = useState(false);
 
   const handleSearchGame = () => {
-    console.log("Emitting PlayerSearchGame with UUID:", player?.uuid);
     socket?.emit("PlayerSearchGame", { uuid: player?.uuid });
     setMessageWait(true);
   };
-  const handleOpenLeaderboard = () => {
+  const openBoard = () => {
     setOpenLeaderboard(true);
     socket?.emit("Leaderboard");
   };
+
   return (
     <Box
       sx={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #6366f1, #a855f7, #ec4899)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        p: 2,
+        bgcolor: "transparent",
+        background:
+          "linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)",
       }}
     >
-      <Container maxWidth="sm">
-        <Box display="flex" justifyContent="flex-end" mb={2}>
-          <IconButton onClick={handleOpenLeaderboard} color="primary">
-            <LeaderboardIcon />
-          </IconButton>
-        </Box>
+      <Box
+        component="header"
+        sx={{
+          position: "fixed",
+          top: 0,
+          width: "100%",
+          p: 2,
+          backdropFilter: "blur(8px)",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="h6" color="white" fontWeight="bold">
+          Calcul Clash
+        </Typography>
+        <IconButton color="inherit" onClick={openBoard}>
+          <LeaderboardIcon />
+        </IconButton>
+      </Box>
 
-        <Paper
-          elevation={6}
-          sx={{
-            borderRadius: 4,
-            p: 4,
-            textAlign: "center",
-          }}
-        >
-          <Typography variant="h5" sx={{ mb: 3 }}>
-            {player?.login}
-            {" ELO: "}
-            {gameScore
-              ? gameScore.find((p) => p.login === player?.login)?.elo ??
-                player?.elo
-              : player?.elo}
-          </Typography>
+      <Container
+        maxWidth="sm"
+        sx={{
+          pt: 12,
+          pb: 4,
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={
+              // génère une clé selon l'état pour forcer la transition
+              gameScore
+                ? "end"
+                : currentGame
+                ? currentProblem
+                  ? showCountdown
+                    ? "countdown"
+                    : "game"
+                  : "created"
+                : messageWait
+                ? "waiting"
+                : "idle"
+            }
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <Paper
+              elevation={4}
+              sx={{
+                borderRadius: 4,
+                p: 4,
+                textAlign: "center",
+                position: "relative",
+                overflow: "hidden",
 
-          {!gameScore && (
-            <>
-              {!currentGame && (
+                bgcolor: "rgba(0, 0, 0, 0.6)",
+                color: "white",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+              }}
+            >
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: -50,
+                  right: -50,
+                  width: 150,
+                  height: 150,
+                  bgcolor: "primary.main",
+                  opacity: 0.1,
+                  transform: "rotate(45deg)",
+                }}
+              />
+
+              {!currentGame && !gameScore && (
+                <>
+                  <Typography
+                    variant="h5"
+                    fontWeight="bold"
+                    sx={{
+                      mb: 2,
+                      color: "white",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                    }}
+                  >
+                    {messageWait ? (
+                      "🔍 Recherche en cours…"
+                    ) : (
+                      <>
+                        <Box component="span" sx={{ fontSize: "1.2rem" }}>
+                          Bienvenue{" "}
+                          <Box
+                            component="span"
+                            sx={{
+                              color: "primary.main",
+                              fontWeight: "bold",
+                              fontSize: "1.4rem",
+                            }}
+                          >
+                            {player?.login}
+                          </Box>
+                        </Box>
+                        <Box
+                          component="span"
+                          sx={{
+                            mt: 1,
+                            fontSize: "1rem",
+                            background:
+                              "linear-gradient(to right, #6366f1, #a855f7, #ec4899)",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                            fontWeight: "bold",
+                            animation: messageWait
+                              ? "pulse 1.5s infinite"
+                              : "none",
+                          }}
+                        >
+                          🏅 ELO:{" "}
+                          {gameScore
+                            ? gameScore.find((p) => p.login === player?.login)
+                                ?.elo ?? player?.elo
+                            : player?.elo}
+                        </Box>
+                      </>
+                    )}
+                  </Typography>
+
+                  {!messageWait && (
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      size="large"
+                      sx={{
+                        py: 1.5,
+                        background:
+                          "linear-gradient(to right, #6366f1, #a855f7, #ec4899)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                        textTransform: "uppercase",
+                        animation: "pulse 2s infinite",
+                        "&:hover": {
+                          background:
+                            "linear-gradient(to right, #4f46e5, #9333ea, #db2777)",
+                        },
+                      }}
+                      onClick={handleSearchGame}
+                    >
+                      🔍 Rechercher une partie
+                    </Button>
+                  )}
+
+                  {messageWait && (
+                    <Box mt={3}>
+                      <CircularProgress
+                        size={64}
+                        sx={{
+                          color: "secondary.main",
+                          mb: 3,
+                          animation: "pulse 2s infinite",
+                        }}
+                      />
+                    </Box>
+                  )}
+                </>
+              )}
+
+              {currentGame && !currentProblem && showCountdown && (
                 <Box
                   sx={{
-                    bgcolor: "white",
-                    borderRadius: 4,
-                    p: 4,
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                    py: 6,
                     textAlign: "center",
-                    position: "relative",
-                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  {/* Dégradé en coin */}
-                  <Box
+                  <CircularProgress
+                    size={64}
                     sx={{
-                      position: "absolute",
-                      top: -40,
-                      right: -40,
-                      width: 120,
-                      height: 120,
-                      bgcolor: "primary.main",
-                      opacity: 0.2,
-                      transform: "rotate(45deg)",
+                      color: "secondary.main",
+                      mb: 3,
+                      animation: "pulse 2s infinite",
                     }}
                   />
-                  <Typography variant="h4" fontWeight="bold" sx={{ mb: 2 }}>
-                    Prêt à jouer ?
-                  </Typography>
+
                   <Typography
-                    variant="subtitle1"
-                    color="text.secondary"
-                    sx={{ mb: 4 }}
+                    variant="h5"
+                    sx={{
+                      fontWeight: "bold",
+                      color: "primary.main",
+                      animation: "fadeIn 1s ease-in-out",
+                      textShadow: "1px 1px 4px rgba(0, 0, 0, 0.3)",
+                    }}
                   >
-                    Clique sur le bouton pour trouver un adversaire
+                    🎯 Partie trouvée ! Préparation…
                   </Typography>
+                </Box>
+              )}
+
+              {currentGame && currentProblem && showCountdown && (
+                <PreGameCountdown
+                  timer={timer}
+                  onComplete={() => setShowCountdown(false)}
+                />
+              )}
+
+              {currentGame && currentProblem && !showCountdown && (
+                <GameBoard
+                  problem={currentProblem}
+                  timer={timer}
+                  messageEror={messageEror}
+                  setTimer={setTimer}
+                  currentGame={currentGame}
+                  gameScore={gameScore}
+                />
+              )}
+
+              {gameScore && !currentProblem && (
+                <>
+                  <Typography
+                    variant="h4"
+                    gutterBottom
+                    sx={{
+                      fontWeight: "bold",
+                      mb: 3,
+                      textAlign: "center",
+                      color: "primary.main",
+                      textShadow: "1px 1px 3px rgba(0,0,0,0.2)",
+                    }}
+                  >
+                    🎉 Match terminé !
+                  </Typography>
+
+                  {gameScore.map((p, i) => (
+                    <Typography
+                      key={p.login}
+                      variant="h6"
+                      sx={{
+                        mb: 1,
+                        fontWeight: i === 0 ? "bold" : "normal",
+                        textAlign: "center",
+                      }}
+                    >
+                      {i + 1}. {p.login} — 🧠 Score: {p.score} — 🏅 ELO: {p.elo}
+                    </Typography>
+                  ))}
 
                   <Button
                     variant="contained"
-                    color="primary"
-                    onClick={handleSearchGame}
                     fullWidth
                     size="large"
                     sx={{
-                      py: 1.8,
-                      fontSize: "1rem",
-                      textTransform: "uppercase",
-                      background: "linear-gradient(135deg, #4f46e5, #ec4899)",
+                      py: 1.5,
+                      background:
+                        "linear-gradient(to right, #6366f1, #a855f7, #ec4899)",
                       boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      textTransform: "uppercase",
+                      animation: "pulse 2s infinite",
+                      "&:hover": {
+                        background:
+                          "linear-gradient(to right, #4f46e5, #9333ea, #db2777)",
+                      },
                     }}
+                    onClick={handleSearchGame}
                   >
-                    🔍 Rechercher une partie
+                    🔄 Rejouer
                   </Button>
 
                   {messageWait && (
                     <Box
                       display="flex"
-                      flexDirection="column"
                       alignItems="center"
-                      mt={4}
-                      sx={{
-                        animation: "pulse 1.5s ease-in-out infinite",
-                      }}
+                      justifyContent="center"
+                      gap={1}
+                      mt={3}
                     >
-                      <CircularProgress size={32} thickness={4} />
                       <Typography
+                        variant="h5"
+                        fontWeight="bold"
                         sx={{
-                          mt: 2,
-                          fontStyle: "italic",
-                          color: "text.secondary",
+                          mb: 2,
+                          color: "white",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
                         }}
                       >
-                        Recherche en cours…
+                        🔍 Recherche en cours…
                       </Typography>
+                      <CircularProgress
+                        size={64}
+                        sx={{
+                          color: "secondary.main",
+                          mb: 3,
+                          animation: "pulse 2s infinite",
+                        }}
+                      />
                     </Box>
                   )}
-                </Box>
+                </>
               )}
-            </>
-          )}
-
-          {currentGame &&
-            currentProblem &&
-            (showCountdown ? (
-              <PreGameCountdown
-                onComplete={() => {
-                  setShowCountdown(false);
-                }}
-                timer={timer}
-              />
-            ) : (
-              <GameBoard
-                problem={currentProblem}
-                timer={timer}
-                setTimer={setTimer}
-                messageEror={messageEror}
-                currentGame={currentGame}
-                gameScore={gameScore}
-              />
-            ))}
-
-          {gameScore && !currentProblem && (
-            <>
-              <Typography variant="h4" gutterBottom>
-                🎉 Match terminé !
-              </Typography>
-              <Typography
-                variant="subtitle1"
-                sx={{ mb: 3, color: "text.secondary" }}
-              >
-                Voici les scores :
-              </Typography>
-              <Typography sx={{ fontSize: "1.2rem", mb: 1 }}>
-                🧑 Joueur 1 {gameScore[0].login} : score {gameScore[0].score} :
-                elo {gameScore[0].elo}
-              </Typography>
-              <Typography sx={{ fontSize: "1.2rem", mb: 3 }}>
-                🧑 Joueur 2 {gameScore[1].login} : score {gameScore[1].score} :
-                elo {gameScore[1].elo}
-              </Typography>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={handleSearchGame}
-                fullWidth
-                size="large"
-              >
-                🔄 Rejouer
-              </Button>
-              {messageWait && (
-                <Box
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  gap={1}
-                  mt={2}
-                >
-                  <CircularProgress size={20} color="primary" />
-                  <Typography>
-                    Veuillez patienter, la recherche d'une partie est en
-                    cours...
-                  </Typography>
-                </Box>
-              )}
-            </>
-          )}
-        </Paper>
+            </Paper>
+          </motion.div>
+        </AnimatePresence>
       </Container>
+
       <Dialog
         open={openLeaderboard}
         onClose={() => setOpenLeaderboard(false)}
         fullWidth
-        maxWidth="sm"
+        maxWidth="xs"
       >
         <DialogTitle>🏆 Classement des joueurs</DialogTitle>
         <DialogContent>
           {leaderBoard?.players?.length ? (
             <List>
-              {leaderBoard.players.map((player, index) => (
-                <ListItem key={player.login}>
+              {leaderBoard.players.map((p, idx) => (
+                <ListItem key={p.login} divider>
                   <ListItemText
-                    primary={`${index + 1}. ${player.login}`}
-                    secondary={`ELO : ${player.elo} ${
-                      player.isInGame ? "🟢 En jeu" : "⚪️ Connecté"
+                    primary={`${idx + 1}. ${p.login}`}
+                    secondary={`ELO: ${p.elo} ${
+                      p.isInGame ? "🟢 En jeu" : "⚪️ Connecté"
                     }`}
                   />
                 </ListItem>
               ))}
             </List>
           ) : (
-            <Typography>Aucun joueur trouvé dans le classement.</Typography>
+            <Typography>Aucun joueur dans le classement.</Typography>
           )}
         </DialogContent>
       </Dialog>

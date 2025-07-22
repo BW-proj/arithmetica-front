@@ -52,10 +52,14 @@ const PreGameCountdown: React.FC<Props> = ({ onComplete, timer }) => {
           transition={{ duration: 0.5 }}
         >
           <Typography
-            variant="h2"
+            variant="h1"
             fontWeight="bold"
             color="primary"
-            sx={{ textShadow: "1px 1px 4px rgba(0,0,0,0.4)" }}
+            sx={{
+              fontSize: { xs: "4rem", sm: "6rem", md: "8rem" },
+              textShadow: "2px 2px 8px rgba(0,0,0,0.4)",
+              lineHeight: 1,
+            }}
           >
             {count !== null ? count : ""}
           </Typography>
