@@ -61,17 +61,33 @@ export const GameWithSocket: React.FC = () => {
   return (
     <Box
       sx={{
-        minHeight: "120vh",
+        height: "100vh",
         background:
           "linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
-      <Typography variant="h6" color="white" fontWeight="bold">
-        Calcul Clash
-      </Typography>
-      <IconButton color="inherit" onClick={openBoard}>
-        <LeaderboardIcon />
-      </IconButton>
+      {/* Header */}
+      <Box
+        component="header"
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          px: 2,
+          py: 1,
+          // si tu veux un fond semi-transparent en haut :
+          // bgcolor: "rgba(0,0,0,0.3)",
+        }}
+      >
+        <Typography variant="h5" color="white" fontWeight="bold">
+          Calcul Clash
+        </Typography>
+        <IconButton color="inherit" onClick={openBoard}>
+          <LeaderboardIcon />
+        </IconButton>
+      </Box>
 
       <Container
         maxWidth="sm"
