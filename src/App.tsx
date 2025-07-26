@@ -1,5 +1,12 @@
 import React, { useState, useContext } from "react";
-import { Box, Typography, Paper, Container, IconButton } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Paper,
+  Container,
+  IconButton,
+  CssBaseline,
+} from "@mui/material";
 import LeaderboardIcon from "@mui/icons-material/Leaderboard";
 import { motion, AnimatePresence } from "framer-motion";
 import { SocketProvider, GameContext } from "./contexts/GameContext";
@@ -14,9 +21,12 @@ import LeaderboardDialog from "./components/LeaderBoardDialog";
 const App: React.FC = () => {
   const [pseudo, setPseudo] = useState<string | null>(null);
   return (
-    <SocketProvider pseudo={pseudo}>
-      {!pseudo ? <PseudoForm onSubmit={setPseudo} /> : <GameWithSocket />}
-    </SocketProvider>
+    <>
+      <CssBaseline />
+      <SocketProvider pseudo={pseudo}>
+        {!pseudo ? <PseudoForm onSubmit={setPseudo} /> : <GameWithSocket />}
+      </SocketProvider>
+    </>
   );
 };
 
@@ -51,8 +61,7 @@ export const GameWithSocket: React.FC = () => {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
-        bgcolor: "transparent",
+        minHeight: "120vh",
         background:
           "linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)",
       }}

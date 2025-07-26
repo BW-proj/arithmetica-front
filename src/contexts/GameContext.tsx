@@ -71,7 +71,6 @@ export const SocketProvider: React.FC<{
     players: { login: string; elo: number; isInGame: boolean }[];
   }>({ players: [] });
 
-  // ⬇️ Intégration de useSocket ici
   useSocket(pseudo, {
     setSocket,
     setPlayer,
