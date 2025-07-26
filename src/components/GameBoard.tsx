@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import { GameContext } from "../contexts/GameContext";
 import type { Game, GameScore, Problem } from "../types";
 import { Box, Typography, TextField, Button } from "@mui/material";
@@ -23,6 +23,7 @@ const GameBoard: React.FC<Props> = ({
   const { socket, player } = useContext(GameContext);
   const [answer, setAnswer] = useState("");
   const [timeLeft, setTimeLeft] = useState(0);
+  const answerRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setAnswer("");
@@ -67,6 +68,14 @@ const GameBoard: React.FC<Props> = ({
 
   return (
     <Box
+      component="form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (timeLeft > 0) {
+          submitAnswer();
+          answerRef.current?.focus();
+        }
+      }}
       maxWidth={480}
       bgcolor="background.paper"
       p={4}
@@ -112,8 +121,10 @@ const GameBoard: React.FC<Props> = ({
 
       <TextField
         type="number"
+        inputRef={answerRef}
         fullWidth
         value={answer}
+        autoFocus
         onChange={(e) => setAnswer(e.target.value)}
         placeholder="Votre réponse"
         variant="outlined"
@@ -126,10 +137,10 @@ const GameBoard: React.FC<Props> = ({
       />
 
       <Button
+        type="submit"
         variant="contained"
         fullWidth
         size="large"
-        onClick={submitAnswer}
         disabled={timeLeft === 0}
         sx={{
           mb: 2,
